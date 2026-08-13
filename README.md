@@ -115,18 +115,26 @@ npm run test             # Watch mode
 
 ## Submitting
 
-When you are done, push a tag to trigger the automated test run:
+Each milestone has its own tag. Push the tag for the milestone you are submitting to trigger the automated test run on GitHub Actions.
+
+| Milestone | Tag |
+|-----------|-----|
+| Milestone 1 — Props, State, useState | `milestone-1` |
+| Milestone 2 — Routing & API | `milestone-2` |
+| Milestone 3 — Complete SPA | `milestone-3` |
 
 ```bash
-git tag submit
-git push origin submit
+git add .
+git commit -m "Milestone 1 submission"
+git tag milestone-1
+git push origin milestone-1
 ```
 
 > **Important:** Tags are unique — you cannot push the same tag twice. To resubmit, delete the old tag first:
 > ```bash
-> git tag -d submit
-> git push origin --delete submit
-> git tag submit && git push origin submit
+> git tag -d milestone-1
+> git push origin --delete milestone-1
+> git tag milestone-1 && git push origin milestone-1
 > ```
 
 ---
