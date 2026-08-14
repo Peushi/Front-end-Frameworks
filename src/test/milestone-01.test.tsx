@@ -12,6 +12,11 @@
  *
  * NOTE: If an import below fails, the file does not exist yet.
  * Create the missing component and re-run the tests.
+ *
+ * SESSION BOUNDARY: These tests are graded after Session 2.
+ * After Session 5, MovieCard reads from AppContext and the MovieCard isolation
+ * tests below will fail when run together with the other milestones.
+ * Use `npm run test:m1` to run this file in isolation.
  */
 
 import { render, screen, fireEvent } from '@testing-library/react'
@@ -32,10 +37,13 @@ const MOCK_MOVIE: Movie = {
   title: 'Inception',
   overview: 'A thief who steals corporate secrets through dream-sharing technology.',
   poster_path: '/inception.jpg',
+  backdrop_path: null,
   release_date: '2010-07-16',
   vote_average: 8.8,
   vote_count: 25000,
+  popularity: 100.0,
   genre_ids: [28, 878, 53],
+  adult: false,
 }
 
 const MOCK_MOVIES: Movie[] = [
