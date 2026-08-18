@@ -21,7 +21,7 @@ name: Milestone 2 — Routing and SPA Architecture
 on:
   push:
     tags:
-      - 'milestone-2'
+      - "milestone-2"
 
 jobs:
   milestone-2:
@@ -32,11 +32,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -56,3 +56,19 @@ jobs:
 
       - name: Run Milestone 2 tests
         run: npm run test:run:verbose
+
+      # ── Notify Google Sheet ─────────────────────────────────────────────────
+
+      - name: Notify Google Sheet
+        if: always()
+        run: |
+          curl -X POST "${{ secrets.SHEETS_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"repo\": \"${{ github.repository }}\",
+              \"student\": \"${{ github.actor }}\",
+              \"tag\": \"${{ github.ref_name }}\",
+              \"status\": \"${{ job.status }}\",
+              \"milestone\": \"2\",
+              \"run_url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }"
