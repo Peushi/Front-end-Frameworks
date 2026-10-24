@@ -1,7 +1,8 @@
-import { X } from "lucide-react";
+import { X, Heart } from "lucide-react";
 import type { Movie } from "../types";
 import { getPosterUrl, getBackdropUrl } from "../data/sampleMovies";
 import { getGenreNames } from "../data/genres";
+import { useAppContext } from "../context/appContext";
 
 type MovieModalProps = {
   movie: Movie | null;
@@ -9,20 +10,36 @@ type MovieModalProps = {
 };
 
 const MovieModal = ({ movie, onClose }: MovieModalProps) => {
+  const { toggleFavorite, isFavorite } = useAppContext();
+
   if (!movie) {
     return null;
   }
 
+  const favourite = isFavorite(movie.id);
+
+  const handleFavoriteClick = () => {
+    toggleFavorite(movie);
+  };
+
   return (
-    <div className="modal-overlay active" onClick={onClose}>
+    <div
+      className="modal-overlay active"
+      onClick={onClose}
+      role="presentation"
+    >
       <div
         className="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${movie.title} details`}
         onClick={(event) => event.stopPropagation()}
       >
         <button
+          type="button"
           className="modal-close-btn"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Close movie details"
         >
           <X size={20} />
         </button>
@@ -37,7 +54,7 @@ const MovieModal = ({ movie, onClose }: MovieModalProps) => {
         <div className="modal-body">
           <img
             src={getPosterUrl(movie.poster_path)}
-            alt={movie.title}
+            alt={`${movie.title} poster`}
             className="modal-poster"
           />
 
@@ -76,6 +93,26 @@ const MovieModal = ({ movie, onClose }: MovieModalProps) => {
               <h3 className="modal-overview-heading">Overview</h3>
               <p className="modal-overview">{movie.overview}</p>
             </div>
+
+            <button
+              type="button"
+              className={`favorite-btn ${
+                favourite ? "is-favourite" : ""
+              }`}
+              onClick={handleFavoriteClick}
+              aria-label={
+                favourite
+                  ? "Remove from Favourites"
+                  : "Add to Favourites"
+              }
+              aria-pressed={favourite}
+            >
+              <Heart
+                size={18}
+                fill={favourite ? "currentColor" : "none"}
+              />
+              {favourite ? "Remove from Favourites" : "Add to Favourites"}
+            </button>
           </div>
         </div>
       </div>

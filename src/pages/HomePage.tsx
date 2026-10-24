@@ -5,21 +5,15 @@ import FilterBar from "../components/FilterBar";
 import StatsBanner from "../components/StatsBanner";
 import MovieList from "../components/MovieList";
 import MovieModal from "../components/MovieModal";
-import { getFavorites, getTheme, setTheme } from "../utils/storage";
 import type { Movie } from "../types";
 
 const HomePage = () => {
   const [search, setSearch] = useState("");
   const [onlyFavorites, setOnlyFavorites] = useState(false);
-  const [theme, setCurrentTheme] = useState<"dark" | "light">(getTheme());
   const [genre, setGenre] = useState("");
   const [sort, setSort] = useState("popularity");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-
-  const [favoriteCount, setFavoriteCount] = useState(
-    () => getFavorites().length,
-  );
 
   const {
     movies,
@@ -34,13 +28,6 @@ const HomePage = () => {
     onlyFavorites,
   });
 
-  const handleToggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-
-    setCurrentTheme(newTheme);
-    setTheme(newTheme);
-  };
-
   const handleToggleFavorites = () => {
     setOnlyFavorites((current) => !current);
   };
@@ -52,9 +39,6 @@ const HomePage = () => {
         onSearch={setSearch}
         onlyFavorites={onlyFavorites}
         onToggleFavorites={handleToggleFavorites}
-        theme={theme}
-        onToggleTheme={handleToggleTheme}
-        favCount={favoriteCount}
         onOpenApiConfig={() => {}}
       />
 
@@ -86,10 +70,12 @@ const HomePage = () => {
         )}
       </main>
 
-      <MovieModal
-        movie={selectedMovie}
-        onClose={() => setSelectedMovie(null)}
-      />
+      {selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+        />
+      )}
     </>
   );
 };

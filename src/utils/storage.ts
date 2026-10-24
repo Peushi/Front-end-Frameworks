@@ -1,7 +1,7 @@
 import type { Movie, Theme } from "../types";
 
-const FAVORITES_KEY = "cinegrid-favorites";
-const THEME_KEY = "cinegrid-theme";
+const FAVORITES_KEY = "cinegrid_favorites";
+const THEME_KEY = "cinegrid_theme";
 const API_KEY = "cinegrid-api-key";
 
 export function getFavorites(): Movie[] {

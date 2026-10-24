@@ -1,7 +1,7 @@
-import { useState } from "react";
+import type { MouseEvent } from "react";
 import type { Movie } from "../types";
 import { getPosterUrl } from "../data/sampleMovies";
-import { getFavorites, toggleFavorite } from "../utils/storage";
+import { useAppContext } from "../context/appContext";
 
 type MovieCardProps = {
   movie: Movie;
@@ -9,17 +9,14 @@ type MovieCardProps = {
 };
 
 function MovieCard({ movie, onClick }: MovieCardProps) {
-  const [isFavourite, setIsFavourite] = useState(() =>
-    getFavorites().some((favorite) => favorite.id === movie.id),
-  );
+  const { toggleFavorite, isFavorite } = useAppContext();
+  const favourite = isFavorite(movie.id);
 
   const handleFavouriteClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
+    event: MouseEvent<HTMLButtonElement>,
   ) => {
     event.stopPropagation();
-
     toggleFavorite(movie);
-    setIsFavourite((current) => !current);
   };
 
   return (
@@ -44,17 +41,24 @@ function MovieCard({ movie, onClick }: MovieCardProps) {
             </span>
 
             <button
+              type="button"
               className={`favorite-btn ${
-                isFavourite ? "is-favourite" : ""
+                favourite ? "is-favourite" : ""
               }`}
               title={
-                isFavourite
-                  ? "Remove from Watchlist"
-                  : "Add to Watchlist"
+                favourite
+                  ? "Remove from Favourites"
+                  : "Add to Favourites"
               }
+              aria-label={
+                favourite
+                  ? "Remove from Favourites"
+                  : "Add to Favourites"
+              }
+              aria-pressed={favourite}
               onClick={handleFavouriteClick}
             >
-              {isFavourite ? "♥" : "♡"}
+              {favourite ? "♥" : "♡"}
             </button>
           </div>
 
