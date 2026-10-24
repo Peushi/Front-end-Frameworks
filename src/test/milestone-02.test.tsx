@@ -8,7 +8,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
-import { AppProvider } from '../context/appContext'
+import { AppProvider } from '../context/AppContext'
 import App from '../App'
 import NotFoundPage from '../pages/NotFoundPage'
 import AboutPage from '../pages/AboutPage'

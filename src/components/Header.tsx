@@ -6,7 +6,7 @@ import {
   Moon,
   KeyRound,
 } from "lucide-react";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 
 type HeaderProps = {
   search: string;

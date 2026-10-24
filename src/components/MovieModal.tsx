@@ -2,7 +2,7 @@ import { X, Heart } from "lucide-react";
 import type { Movie } from "../types";
 import { getPosterUrl, getBackdropUrl } from "../data/sampleMovies";
 import { getGenreNames } from "../data/genres";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 
 type MovieModalProps = {
   movie: Movie | null;

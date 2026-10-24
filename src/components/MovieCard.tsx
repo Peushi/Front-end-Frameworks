@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react";
 import type { Movie } from "../types";
 import { getPosterUrl } from "../data/sampleMovies";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 
 type MovieCardProps = {
   movie: Movie;
