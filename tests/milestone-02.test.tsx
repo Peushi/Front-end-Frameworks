@@ -2,36 +2,29 @@
  * Milestone 2 — React Router and Single-Page Application Architecture
  *
  * These tests verify the Session 4 requirements:
- *   1. The app has routes: / (Home), /about (About), and * (404 fallback)
- *   2. The Header renders navigation links: Home and About
+ *   1. Routes: / (Home), /about (About), and * (404 fallback)
+ *   2. Header navigation links: Home and About
  *   3. NotFoundPage renders on unknown URLs
  *   4. AboutPage renders on /about
  *   5. Loading state is shown while data is fetching
  *   6. Error state or empty state is shown when the fetch fails
  *   7. Milestone 1 requirements still pass (regression)
  *
- * fetch is mocked globally — no real network calls are made.
- *
  * Run locally: npm run test:run
  * Run with detail: npm run test:run:verbose
- *
- * NOTE: If an import fails, the file does not exist yet.
- * Create the missing file and re-run the tests.
- *
- * SESSION BOUNDARY: These tests are graded after Session 4.
- * After Session 5, HomePage reads from AppContext and the HomePage isolation
- * tests below will fail when run together with the other milestones.
- * Use `npm run test:m2` to run this file in isolation.
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import type { ReactNode } from 'react'
 
 import App from '../App'
 import NotFoundPage from '../pages/NotFoundPage'
 import AboutPage from '../pages/AboutPage'
 import HomePage from '../pages/HomePage'
+import MovieModal from '../components/MovieModal'
+import { AppProvider } from '../context/appContext'
 import type { Movie } from '../types'
 
 // ── Shared test fixtures ──────────────────────────────────────────────────────
@@ -65,7 +58,13 @@ const MOCK_MOVIES: Movie[] = [
   },
 ]
 
-// ── fetch mock helpers ────────────────────────────────────────────────────────
+// ── Shared render helper ──────────────────────────────────────────────────────
+
+function renderWithProviders(ui: ReactNode) {
+  return render(<AppProvider>{ui}</AppProvider>)
+}
+
+// ── Fetch mock helpers ────────────────────────────────────────────────────────
 
 function mockFetch() {
   return Promise.resolve({
@@ -81,7 +80,11 @@ function mockFetch() {
 }
 
 function mockFetchError() {
-  return Promise.resolve({ ok: false, status: 401, statusText: 'Unauthorized' })
+  return Promise.resolve({
+    ok: false,
+    status: 401,
+    statusText: 'Unauthorized',
+  })
 }
 
 beforeEach(() => {
@@ -108,13 +111,16 @@ describe('App — routing shell', () => {
 
   it('renders movie cards after the home page fetch resolves', async () => {
     render(<App />)
+
     await waitFor(() => {
-      expect(screen.getAllByRole('heading', { level: 2 }).length).toBeGreaterThanOrEqual(1)
+      expect(
+        screen.getAllByRole('heading', { level: 2 }).length,
+      ).toBeGreaterThanOrEqual(1)
     })
   })
 })
 
-// ── Header — navigation links ─────────────────────────────────────────────────
+// ── Header — navigation links ────────────────────────────────────────────────
 
 describe('Header — navigation links', () => {
   it('renders a Home navigation link', () => {
@@ -142,56 +148,64 @@ describe('Header — navigation links', () => {
 
 describe('NotFoundPage — wildcard 404 route', () => {
   it('renders a 404 indicator', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <NotFoundPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     expect(screen.getByText(/404/)).toBeInTheDocument()
   })
 
   it('renders a message explaining the page was not found', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <NotFoundPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     expect(screen.getByText(/not found/i)).toBeInTheDocument()
   })
 
   it('renders a way to navigate back to the home page', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <NotFoundPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     const homeLink = screen.queryByRole('link', { name: /home/i })
     const homeButton = screen.queryByRole('button', { name: /home/i })
     const backButton = screen.queryByRole('button', { name: /back/i })
+
     expect(homeLink || homeButton || backButton).not.toBeNull()
   })
 
   it('is rendered when navigating to an unknown route', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/this-route-does-not-exist']}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     expect(screen.getByText(/404/)).toBeInTheDocument()
   })
 
   it('does NOT render on the home route', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </MemoryRouter>
+      <AppProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AppProvider>,
     )
+
     expect(screen.queryByText(/404/)).not.toBeInTheDocument()
   })
 })
@@ -204,8 +218,8 @@ describe('AboutPage — /about route', () => {
       render(
         <MemoryRouter>
           <AboutPage />
-        </MemoryRouter>
-      )
+        </MemoryRouter>,
+      ),
     ).not.toThrow()
   })
 
@@ -213,8 +227,9 @@ describe('AboutPage — /about route', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
   })
 
@@ -222,21 +237,22 @@ describe('AboutPage — /about route', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
-    // At minimum a link back to the home page or movies list
+
     expect(screen.getAllByRole('link').length).toBeGreaterThanOrEqual(1)
   })
 
   it('does NOT show a 404 indicator on the /about route', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/about']}>
         <Routes>
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     expect(screen.queryByText(/404/)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
   })
@@ -244,17 +260,16 @@ describe('AboutPage — /about route', () => {
 
 // ── MovieModal — overview display ─────────────────────────────────────────────
 
-import MovieModal from '../components/MovieModal'
-
 describe('MovieModal — renders movie details', () => {
   it('renders the movie overview text', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <MovieModal movie={MOCK_MOVIES[0]} onClose={() => {}} />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
+
     expect(
-      screen.getByText(/Set more than a decade after the events of the first film/)
+      screen.getByText(/Set more than a decade after the events of the first film/),
     ).toBeInTheDocument()
   })
 })
@@ -263,15 +278,18 @@ describe('MovieModal — renders movie details', () => {
 
 describe('HomePage — loading state', () => {
   it('shows no movie headings while the fetch is pending', () => {
-    // Fetch that never resolves — captures the loading state
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+
     render(
-      <MemoryRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-        </Routes>
-      </MemoryRouter>
+      <AppProvider>
+        <MemoryRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+          </Routes>
+        </MemoryRouter>
+      </AppProvider>,
     )
+
     expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0)
   })
 })
@@ -279,13 +297,17 @@ describe('HomePage — loading state', () => {
 describe('HomePage — error / empty state', () => {
   it('shows no movie headings when the fetch fails', async () => {
     vi.stubGlobal('fetch', vi.fn(mockFetchError))
+
     render(
-      <MemoryRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-        </Routes>
-      </MemoryRouter>
+      <AppProvider>
+        <MemoryRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+          </Routes>
+        </MemoryRouter>
+      </AppProvider>,
     )
+
     await waitFor(() => {
       expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0)
     })
@@ -297,13 +319,17 @@ describe('HomePage — error / empty state', () => {
 describe('Milestone 1 regression — props, state, and search still work', () => {
   it('renders movie cards after the home page fetch resolves', async () => {
     render(<App />)
+
     await waitFor(() => {
-      expect(screen.getAllByRole('heading', { level: 2 }).length).toBeGreaterThanOrEqual(1)
+      expect(
+        screen.getAllByRole('heading', { level: 2 }).length,
+      ).toBeGreaterThanOrEqual(1)
     })
   })
 
   it('renders Avatar: The Way of Water from the mocked API response', async () => {
     render(<App />)
+
     await waitFor(() => {
       expect(screen.getByText(/Avatar: The Way of Water/i)).toBeInTheDocument()
     })
@@ -311,20 +337,23 @@ describe('Milestone 1 regression — props, state, and search still work', () =>
 
   it('renders John Wick from the mocked API response', async () => {
     render(<App />)
+
     await waitFor(() => {
       expect(screen.getByText(/John Wick/i)).toBeInTheDocument()
     })
   })
 
-  it('the search bar is present', async () => {
+  it('the search bar is present', () => {
     render(<App />)
     expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 
-  it('typing in the search bar updates its value', async () => {
+  it('typing in the search bar updates its value', () => {
     render(<App />)
+
     const input = screen.getByRole('textbox')
     fireEvent.change(input, { target: { value: 'Avatar' } })
+
     expect(input).toHaveValue('Avatar')
   })
 })

@@ -1,33 +1,14 @@
 /**
  * Milestone 2 — React Router and Single-Page Application Architecture
  *
- * These tests verify the Session 4 requirements:
- *   1. The app has routes: / (Home), /about (About), and * (404 fallback)
- *   2. The Header renders navigation links: Home and About
- *   3. NotFoundPage renders on unknown URLs
- *   4. AboutPage renders on /about
- *   5. Loading state is shown while data is fetching
- *   6. Error state or empty state is shown when the fetch fails
- *   7. Milestone 1 requirements still pass (regression)
- *
- * fetch is mocked globally — no real network calls are made.
- *
- * Run locally: npm run test:run
- * Run with detail: npm run test:run:verbose
- *
- * NOTE: If an import fails, the file does not exist yet.
- * Create the missing file and re-run the tests.
- *
- * SESSION BOUNDARY: These tests are graded after Session 4.
- * After Session 5, HomePage reads from AppContext and the HomePage isolation
- * tests below will fail when run together with the other milestones.
- * Use `npm run test:m2` to run this file in isolation.
+ * Tests cover routing, navigation, loading/error states, and Milestone 1 regression.
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
+import { AppProvider } from '../context/appContext'
 import App from '../App'
 import NotFoundPage from '../pages/NotFoundPage'
 import AboutPage from '../pages/AboutPage'
@@ -65,7 +46,13 @@ const MOCK_MOVIES: Movie[] = [
   },
 ]
 
-// ── fetch mock helpers ────────────────────────────────────────────────────────
+// ── Render helper ─────────────────────────────────────────────────────────────
+
+function renderWithProviders(ui: React.ReactNode) {
+  return render(<AppProvider>{ui}</AppProvider>)
+}
+
+// ── Fetch mock helpers ────────────────────────────────────────────────────────
 
 function mockFetch() {
   return Promise.resolve({
@@ -81,7 +68,11 @@ function mockFetch() {
 }
 
 function mockFetchError() {
-  return Promise.resolve({ ok: false, status: 401, statusText: 'Unauthorized' })
+  return Promise.resolve({
+    ok: false,
+    status: 401,
+    statusText: 'Unauthorized',
+  })
 }
 
 beforeEach(() => {
@@ -142,7 +133,7 @@ describe('Header — navigation links', () => {
 
 describe('NotFoundPage — wildcard 404 route', () => {
   it('renders a 404 indicator', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <NotFoundPage />
       </MemoryRouter>
@@ -151,7 +142,7 @@ describe('NotFoundPage — wildcard 404 route', () => {
   })
 
   it('renders a message explaining the page was not found', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <NotFoundPage />
       </MemoryRouter>
@@ -160,7 +151,7 @@ describe('NotFoundPage — wildcard 404 route', () => {
   })
 
   it('renders a way to navigate back to the home page', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <NotFoundPage />
       </MemoryRouter>
@@ -172,7 +163,7 @@ describe('NotFoundPage — wildcard 404 route', () => {
   })
 
   it('is rendered when navigating to an unknown route', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/this-route-does-not-exist']}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -184,7 +175,7 @@ describe('NotFoundPage — wildcard 404 route', () => {
   })
 
   it('does NOT render on the home route', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -201,7 +192,7 @@ describe('NotFoundPage — wildcard 404 route', () => {
 describe('AboutPage — /about route', () => {
   it('renders without crashing', () => {
     expect(() =>
-      render(
+      renderWithProviders(
         <MemoryRouter>
           <AboutPage />
         </MemoryRouter>
@@ -210,7 +201,7 @@ describe('AboutPage — /about route', () => {
   })
 
   it('renders a heading', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <AboutPage />
       </MemoryRouter>
@@ -219,17 +210,16 @@ describe('AboutPage — /about route', () => {
   })
 
   it('renders a link that navigates away from the page', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <AboutPage />
       </MemoryRouter>
     )
-    // At minimum a link back to the home page or movies list
     expect(screen.getAllByRole('link').length).toBeGreaterThanOrEqual(1)
   })
 
   it('does NOT show a 404 indicator on the /about route', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/about']}>
         <Routes>
           <Route path="/about" element={<AboutPage />} />
@@ -246,15 +236,16 @@ describe('AboutPage — /about route', () => {
 
 describe('HomePage — loading state', () => {
   it('shows no movie headings while the fetch is pending', () => {
-    // Fetch that never resolves — captures the loading state
     vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
-    render(
+
+    renderWithProviders(
       <MemoryRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
         </Routes>
       </MemoryRouter>
     )
+
     expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0)
   })
 })
@@ -262,13 +253,15 @@ describe('HomePage — loading state', () => {
 describe('HomePage — error / empty state', () => {
   it('shows no movie headings when the fetch fails', async () => {
     vi.stubGlobal('fetch', vi.fn(mockFetchError))
-    render(
+
+    renderWithProviders(
       <MemoryRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
         </Routes>
       </MemoryRouter>
     )
+
     await waitFor(() => {
       expect(screen.queryAllByRole('heading', { level: 2 })).toHaveLength(0)
     })
