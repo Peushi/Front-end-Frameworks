@@ -1,3 +1,4 @@
+
 import { Grid3X3, List } from "lucide-react";
 
 type FilterBarProps = {
@@ -33,11 +34,11 @@ const FilterBar = ({
 }: FilterBarProps) => {
   return (
     <section className="filter-bar">
-      <div className="genre-filters">
+      <div className="genre-pills-scroll">
         {genres.map((item) => (
           <button
             key={item.id}
-            className={genre === item.id ? "active" : ""}
+            className={`genre-pill ${genre === item.id ? "active" : ""}`}
             onClick={() => onGenreChange(item.id)}
           >
             {item.name}
@@ -45,32 +46,37 @@ const FilterBar = ({
         ))}
       </div>
 
-      <div className="filter-actions">
-        <select
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value)}
-        >
-          <option value="popularity">Popularity</option>
-          <option value="rating">Rating</option>
-          <option value="release_date">Release Date</option>
-          <option value="title">Title</option>
-        </select>
+      <div className="filter-actions-right">
+        <div className="sort-select-wrapper">
+          <select
+            className="sort-select"
+            value={sort}
+            onChange={(e) => onSortChange(e.target.value)}
+          >
+            <option value="popularity">Popularity</option>
+            <option value="rating">Rating</option>
+            <option value="release_date">Release Date</option>
+            <option value="title">Title</option>
+          </select>
+        </div>
 
-        <button
-          onClick={() => onViewModeChange("grid")}
-          aria-label="Grid view"
-          className={viewMode === "grid" ? "active" : ""}
-        >
-          <Grid3X3 size={18} />
-        </button>
+        <div className="view-toggle-group">
+          <button
+            className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
+            onClick={() => onViewModeChange("grid")}
+            aria-label="Grid view"
+          >
+            <Grid3X3 size={18} />
+          </button>
 
-        <button
-          onClick={() => onViewModeChange("list")}
-          aria-label="List view"
-          className={viewMode === "list" ? "active" : ""}
-        >
-          <List size={18} />
-        </button>
+          <button
+            className={`view-btn ${viewMode === "list" ? "active" : ""}`}
+            onClick={() => onViewModeChange("list")}
+            aria-label="List view"
+          >
+            <List size={18} />
+          </button>
+        </div>
       </div>
     </section>
   );

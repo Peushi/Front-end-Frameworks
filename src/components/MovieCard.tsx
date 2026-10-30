@@ -1,3 +1,4 @@
+
 import type { MouseEvent } from "react";
 import type { Movie } from "../types";
 import { getPosterUrl } from "../data/sampleMovies";
@@ -9,14 +10,28 @@ type MovieCardProps = {
 };
 
 function MovieCard({ movie, onClick }: MovieCardProps) {
-  const { toggleFavorite, isFavorite } = useAppContext();
+  const {
+    toggleFavorite,
+    isFavorite,
+    toggleWatchlist,
+    isInWatchlist,
+  } = useAppContext();
+
   const favourite = isFavorite(movie.id);
+  const inWatchlist = isInWatchlist(movie.id);
 
   const handleFavouriteClick = (
     event: MouseEvent<HTMLButtonElement>,
   ) => {
     event.stopPropagation();
     toggleFavorite(movie);
+  };
+
+  const handleWatchlistClick = (
+    event: MouseEvent<HTMLButtonElement>,
+  ) => {
+    event.stopPropagation();
+    toggleWatchlist(movie);
   };
 
   return (
@@ -59,6 +74,25 @@ function MovieCard({ movie, onClick }: MovieCardProps) {
               onClick={handleFavouriteClick}
             >
               {favourite ? "♥" : "♡"}
+            </button>
+
+            <button
+              type="button"
+              className="watchlist-btn"
+              title={
+                inWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+              aria-label={
+                inWatchlist
+                  ? "Remove from Watchlist"
+                  : "Add to Watchlist"
+              }
+              aria-pressed={inWatchlist}
+              onClick={handleWatchlistClick}
+            >
+              {inWatchlist ? "✓" : "+"}
             </button>
           </div>
 

@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useContext,
@@ -11,56 +12,50 @@ import {
   toggleFavorite as toggleFavoriteStorage,
   getTheme,
   setTheme,
+  getWatchlist,
+  toggleWatchlist as toggleWatchlistStorage,
 } from "../utils/storage";
 
-// 1. Define the state
 type State = {
   theme: Theme;
   favorites: Movie[];
+  watchlist: Movie[];
 };
 
-// 2. Define the actions
 type Action =
   | { type: "SET_THEME"; payload: Theme }
-  | { type: "TOGGLE_FAVOURITE"; payload: Movie };
+  | { type: "SET_FAVORITES"; payload: Movie[] }
+  | { type: "SET_WATCHLIST"; payload: Movie[] };
 
-// 3. Reducer
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "SET_THEME":
-      return {
-        ...state,
-        theme: action.payload,
-      };
+      return { ...state, theme: action.payload };
 
-    case "TOGGLE_FAVOURITE":
-      toggleFavoriteStorage(action.payload);
+    case "SET_FAVORITES":
+      return { ...state, favorites: action.payload };
 
-      return {
-        ...state,
-        favorites: getFavorites(),
-      };
+    case "SET_WATCHLIST":
+      return { ...state, watchlist: action.payload };
 
     default:
       return state;
   }
 };
 
-// 4. Define the context value
 type AppContextType = {
   theme: Theme;
   toggleTheme: () => void;
   favorites: Movie[];
   toggleFavorite: (movie: Movie) => void;
   isFavorite: (id: number) => boolean;
+  watchlist: Movie[];
+  toggleWatchlist: (movie: Movie) => void;
+  isInWatchlist: (id: number) => boolean;
 };
 
-// 5. Create the context
-const AppContext = createContext<AppContextType | undefined>(
-  undefined,
-);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// 6. Create the provider
 export const AppProvider = ({
   children,
 }: {
@@ -69,9 +64,9 @@ export const AppProvider = ({
   const [state, dispatch] = useReducer(reducer, {
     theme: getTheme(),
     favorites: getFavorites(),
+    watchlist: getWatchlist(),
   });
 
-  // Persist the theme and apply it to the document
   useEffect(() => {
     setTheme(state.theme);
   }, [state.theme]);
@@ -84,14 +79,26 @@ export const AppProvider = ({
   };
 
   const toggleFavorite = (movie: Movie) => {
+    toggleFavoriteStorage(movie);
     dispatch({
-      type: "TOGGLE_FAVOURITE",
-      payload: movie,
+      type: "SET_FAVORITES",
+      payload: getFavorites(),
     });
   };
 
   const isFavorite = (id: number) =>
     state.favorites.some((movie) => movie.id === id);
+
+  const toggleWatchlist = (movie: Movie) => {
+    toggleWatchlistStorage(movie);
+    dispatch({
+      type: "SET_WATCHLIST",
+      payload: getWatchlist(),
+    });
+  };
+
+  const isInWatchlist = (id: number) =>
+    state.watchlist.some((movie) => movie.id === id);
 
   return (
     <AppContext.Provider
@@ -101,6 +108,9 @@ export const AppProvider = ({
         favorites: state.favorites,
         toggleFavorite,
         isFavorite,
+        watchlist: state.watchlist,
+        toggleWatchlist,
+        isInWatchlist,
       }}
     >
       {children}
@@ -108,14 +118,11 @@ export const AppProvider = ({
   );
 };
 
-// 7. Custom hook
 export const useAppContext = () => {
   const context = useContext(AppContext);
 
   if (!context) {
-    throw new Error(
-      "useAppContext must be used within an AppProvider",
-    );
+    throw new Error("useAppContext must be used within an AppProvider");
   }
 
   return context;

@@ -1,3 +1,4 @@
+
 import { NavLink } from "react-router-dom";
 import {
   Search,
@@ -27,51 +28,61 @@ const Header = ({
 
   return (
     <header className="site-header">
-      <nav>
-        <NavLink to="/" end>
-          Home
-        </NavLink>
+      <div className="header-inner">
+        <nav className="header-nav">
+          <NavLink to="/" end>
+            Home
+          </NavLink>
+          <NavLink to="/about">
+            About
+          </NavLink>
+        </nav>
 
-        <NavLink to="/about">
-          About
-        </NavLink>
-      </nav>
+        <div className="header-search">
+          <div className="search-input-wrapper">
+            <Search className="search-icon" />
+            <input
+              className="search-input"
+              type="text"
+              placeholder="Search movies..."
+              value={search}
+              onChange={(e) => onSearch(e.target.value)}
+            />
+          </div>
+        </div>
 
-      <div className="header-search">
-        <Search size={18} />
+        <div className="header-actions">
+          <button
+            className={`btn-icon-label ${onlyFavorites ? "active" : ""}`}
+            onClick={onToggleFavorites}
+          >
+            <Heart size={18} />
+            <span>
+              {onlyFavorites ? "All Movies" : "Favorites"}
+            </span>
+            <span className="count-badge">{favorites.length}</span>
+          </button>
 
-        <input
-          type="text"
-          placeholder="Search movies..."
-          value={search}
-          onChange={(e) => onSearch(e.target.value)}
-        />
-      </div>
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="theme-toggle-btn"
+          >
+            {theme === "dark" ? (
+              <Sun size={18} />
+            ) : (
+              <Moon size={18} />
+            )}
+          </button>
 
-      <div className="header-actions">
-        <button onClick={onToggleFavorites}>
-          <Heart size={18} />
-          {onlyFavorites
-            ? "All Movies"
-            : `Favorites (${favorites.length})`}
-        </button>
-
-        <button
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          className="theme-toggle-btn"
-        >
-          {theme === "dark" ? (
-            <Sun size={18} />
-          ) : (
-            <Moon size={18} />
-          )}
-        </button>
-
-        <button onClick={onOpenApiConfig}>
-          <KeyRound size={18} />
-          API Key
-        </button>
+          <button
+            className="btn-icon-label"
+            onClick={onOpenApiConfig}
+          >
+            <KeyRound size={18} />
+            <span>API Key</span>
+          </button>
+        </div>
       </div>
     </header>
   );

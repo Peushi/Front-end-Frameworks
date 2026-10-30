@@ -1,6 +1,7 @@
 import type { Movie, Theme } from "../types";
 
 const FAVORITES_KEY = "cinegrid_favorites";
+const WATCHLIST_KEY = "cinegrid_watchlist";
 const THEME_KEY = "cinegrid_theme";
 const API_KEY = "cinegrid-api-key";
 
@@ -11,6 +12,29 @@ export function getFavorites(): Movie[] {
   } catch {
     return [];
   }
+}
+
+export function getWatchlist(): Movie[] {
+  try {
+    const stored = localStorage.getItem(WATCHLIST_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function toggleWatchlist(movie: Movie): Movie[] {
+  const watchlist = getWatchlist();
+
+  const exists = watchlist.some((item) => item.id === movie.id);
+
+  const updated = exists
+    ? watchlist.filter((item) => item.id !== movie.id)
+    : [...watchlist, movie];
+
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(updated));
+
+  return updated;
 }
 
 export function toggleFavorite(movie: Movie): Movie[] {
