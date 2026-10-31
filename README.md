@@ -1,151 +1,113 @@
-# Movie App
+# CineGrid — Movie Discovery App
 
-EPITA Bachelor in Computer Science — S5
+EPITA Bachelor in Computer Science — S5  
 Front-End Frameworks (2627_BSI_CS_S05_PROG_FEF)
 
----
+CineGrid is a React application that lets users discover and explore movies using data from the TMDB API. It includes movie search, genre filtering, sorting, favourites, and a personal watchlist.
 
-This branch introduces **data fetching from the TMDB API**. You will fetch a list of popular movies and start rendering them as React components.
+## Features
 
----
+- **Movie discovery:** Browse popular movies using the TMDB API.
+- **Search:** Find movies by title.
+- **Genre filtering:** Filter movies by genre.
+- **Sorting:** Organise movies using different sorting criteria.
+- **Favourites:** Save and manage favourite movies.
+- **Watchlist:** Add movies you want to watch later. Your watchlist is saved in localStorage.
+- **Theme:** Switch between dark and light mode. Your preference is saved.
+- **Movie details:** Open a modal to view more information about a movie.
+- **Routing:** Navigate between the home page and About page, with a 404 page for unknown routes.
+- **Fallback data:** The application can use sample movies when no TMDB API key is configured.
 
 ## Prerequisites
 
 - Node.js 18 or higher — https://nodejs.org
 - A free TMDB account and API key — https://www.themoviedb.org/settings/api
 
----
-
 ## Setup
 
-**1. Install dependencies**
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-**2. Configure environment variables**
-```bash
-cp .env.example .env
+### 2. Configure the TMDB API key
+
+Create a `.env` file in the project root and add:
+
+```env
+VITE_TMDB_API_KEY=your_tmdb_api_read_access_token
 ```
-Open `.env` and set `VITE_TMDB_API_KEY` to your **API Read Access Token** (the long Bearer token from TMDB Settings → API).
 
-**3. Add the submission secret**
+Use the API Read Access Token from TMDB Settings → API.
 
-Go to your repo on GitHub → **Settings → Secrets and variables → Actions → New repository secret**
-- Name: `SHEETS_WEBHOOK_URL`
-- Value: *(provided by your teacher via Teams)*
+If no API key is configured, the application uses its local sample movie data.
 
-**4. Start the dev server**
+### 3. Start the development server
+
 ```bash
 npm run dev
 ```
 
-App runs at http://localhost:5173
-
----
-
-## TMDB API
-
-All requests are authenticated with a Bearer token in the `Authorization` header.
-
-### Endpoint used in this branch
-
-```
-GET https://api.themoviedb.org/3/movie/popular
-```
-
-| Parameter  | Type    | Default | Description         |
-|------------|---------|---------|---------------------|
-| `language` | string  | `en-US` | Response language   |
-| `page`     | integer | `1`     | Page number         |
-| `region`   | string  | —       | ISO-3166-1 country  |
-
-### Response shape
-
-```json
-{
-  "page": 1,
-  "results": [ /* array of movie objects */ ],
-  "total_pages": 38029,
-  "total_results": 760569
-}
-```
-
-### Movie object fields
-
-| Field               | Type      | Description                          |
-|---------------------|-----------|--------------------------------------|
-| `id`                | integer   | Unique TMDB movie ID                 |
-| `title`             | string    | Movie title                          |
-| `overview`          | string    | Plot summary                         |
-| `release_date`      | string    | `YYYY-MM-DD`                         |
-| `poster_path`       | string    | Poster image path (see below)        |
-| `backdrop_path`     | string    | Backdrop image path                  |
-| `vote_average`      | number    | Rating out of 10                     |
-| `vote_count`        | integer   | Number of votes                      |
-| `popularity`        | number    | TMDB popularity score                |
-| `genre_ids`         | integer[] | Array of genre IDs                   |
-| `original_language` | string    | Original language code               |
-
-### Building image URLs
-
-Poster and backdrop paths are relative. Prepend the image base URL and a size:
-
-```
-https://image.tmdb.org/t/p/w500{poster_path}
-```
-
-Common sizes: `w185`, `w342`, `w500`, `w780`, `original`.
-
----
+The application runs at http://localhost:5173.
 
 ## Available Scripts
 
 ```bash
-npm run dev              # Start dev server
-npm run build            # Type-check + production build
+npm run dev              # Start development server
+npm run build            # Type-check and production build
 npm run lint             # Run ESLint
-npm run type-check       # TypeScript check
+npm run type-check       # Run TypeScript checks
 npm run test:run         # Run tests once
 npm run test:run:verbose # Run tests with per-test detail
-npm run test             # Watch mode
+npm run test             # Run tests in watch mode
+npm run preview          # Preview the production build
 ```
 
----
+## Project Architecture
+
+- **App.tsx:** Configures application routing and providers.
+- **AppContext.tsx:** Manages shared application state, including theme, favourites, and watchlist.
+- **HomePage.tsx:** Handles the home page, search, filters, sorting, and local UI state.
+- **MovieCard.tsx:** Displays individual movies and provides favourite and watchlist actions.
+- **MovieModal.tsx:** Displays additional movie information.
+- **movieService.ts:** Fetches movie data from TMDB or uses local fallback data.
+- **storage.ts:** Handles persistent data using localStorage.
+
+## State Management
+
+The application uses React Context and useReducer to share global state between components without passing props through multiple levels.
+
+localStorage is used to preserve favourites, watchlist items, and theme preferences across page reloads.
+
+## Tech Stack
+
+| Tool | Purpose |
+|---|---|
+| React 18 | UI library |
+| React Router 6 | Client-side routing |
+| TypeScript 5 | Static typing |
+| Vite 5 | Build tool and development server |
+| Vitest + Testing Library | Testing |
+| TMDB API v3 | Movie data |
+| Context API + useReducer | Global state management |
+| localStorage | Persistent user preferences and lists |
 
 ## Submitting
 
-Each milestone has its own tag. Push the tag for the milestone you are submitting to trigger the automated test run on GitHub Actions.
+Each milestone has its own tag. Push the tag for the milestone you are submitting to trigger the automated tests on GitHub Actions.
 
 | Milestone | Tag |
-|-----------|-----|
+|---|---|
 | Milestone 1 — Props, State, useState | `milestone-1` |
 | Milestone 2 — Routing & API | `milestone-2` |
 | Milestone 3 — Complete SPA | `milestone-3` |
 
+Tags are unique. To resubmit a milestone, delete the old tag before creating and pushing it again:
+
 ```bash
-git add .
-git commit -m "Milestone 1 submission"
-git tag milestone-1
-git push origin milestone-1
+git tag -d milestone-3
+git push origin --delete milestone-3
+git tag milestone-3
+git push origin milestone-3
 ```
-
-> **Important:** Tags are unique — you cannot push the same tag twice. To resubmit, delete the old tag first:
-> ```bash
-> git tag -d milestone-1
-> git push origin --delete milestone-1
-> git tag milestone-1 && git push origin milestone-1
-> ```
-
----
-
-## Tech Stack
-
-| Tool                | Purpose                              |
-|---------------------|--------------------------------------|
-| React 18            | UI library                           |
-| React Router 6      | Client-side routing (later branches) |
-| TypeScript 5        | Static typing                        |
-| Vite 5              | Build tool and dev server            |
-| Vitest + Testing Library | Test runner                   |
-| TMDB API v3         | Movie data                           |
